@@ -7,7 +7,7 @@ const CONFIG = {
     // Client ID de OAuth 2.0 (tipo "Aplicación web") creado en Google Cloud
     // Console. NO es un secreto: es seguro que quede visible en el código
     // del sitio (así funciona el login de Google en apps 100% estáticas).
-    GOOGLE_CLIENT_ID: "TU_CLIENT_ID_DE_GOOGLE.apps.googleusercontent.com",
+    GOOGLE_CLIENT_ID: "705425213110-s3m9f574fefvvrgok10ncb8ph82g6qd8.apps.googleusercontent.com",
 
     // Alcance mínimo necesario: solo permite crear/leer archivos que la
     // propia app creó, dentro de una carpeta privada de la app en Drive.

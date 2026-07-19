@@ -1,0 +1,120 @@
+/* ==========================================================================
+   CUADRE — Design tokens
+   Paleta inspirada en un libro de cuentas: fondo tinta, cifras en mono con
+   tabular-nums, verde para lo que entra, coral para lo que sale.
+   ========================================================================== */
+
+:root {
+    --bg: #0B0E11;
+    --surface: #12161C;
+    --surface-2: #181D24;
+    --surface-3: #1F252D;
+    --line: #262C34;
+    --line-soft: #1B2027;
+
+    --text: #ECEEF0;
+    --text-dim: #9198A3;
+    --text-faint: #5B626D;
+
+    --mint: #35D28A;
+    --mint-dim: #1E4A38;
+    --coral: #FF6B5E;
+    --coral-dim: #4A2620;
+    --amber: #F2B84B;
+    --amber-dim: #453419;
+    --blue: #5B9BFF;
+    --blue-dim: #1E2E4A;
+
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --radius-sm: 6px;
+    --radius: 12px;
+    --radius-lg: 18px;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, .4), 0 12px 32px -16px rgba(0, 0, 0, .55);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    color-scheme: dark;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    background-image:
+        linear-gradient(var(--line-soft) 1px, transparent 1px);
+    background-size: 100% 40px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.mono, .amount, table td.num, input[type="number"] {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+
+.amount {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    font-weight: 600;
+}
+
+.amount::before {
+    font-size: .72em;
+    opacity: .85;
+}
+
+.amount.is-positive { color: var(--mint); }
+.amount.is-positive::before { content: "▲"; }
+
+.amount.is-negative { color: var(--coral); }
+.amount.is-negative::before { content: "▼"; }
+
+.amount.is-neutral { color: var(--text); }
+.amount.is-neutral::before { content: "•"; }
+
+a { color: inherit; }
+
+button {
+    font-family: var(--font-body);
+}
+
+::selection {
+    background: var(--mint-dim);
+    color: var(--mint);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--line); }
+
+.visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}

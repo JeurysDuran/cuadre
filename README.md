@@ -114,3 +114,4 @@ js/
 ## 7. Cambiar el año
 
 Cuando empiece 2027, cambia `ANIO_ACTIVO` en `js/config.js`. Si quieres guardar el histórico de 2026 en vez de sobreescribirlo, exporta primero tus datos desde el menú de perfil ("Exportar datos") y cambia también `DRIVE_FILE_NAME` a algo como `cuadre-datos-2027.json` para que la app empiece un archivo nuevo en Drive.
+"# cuadre" 

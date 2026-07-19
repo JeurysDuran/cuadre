@@ -27,7 +27,7 @@ const Auth = (() => {
     function init(readyCallback) {
         onReady = readyCallback;
 
-        if (!window.google ? .accounts ? .oauth2) {
+        if (!window.google ?.accounts ?.oauth2) {
             showToast("No se pudo cargar el inicio de sesión de Google. Revisa tu conexión.", "error");
             return;
         }
@@ -79,13 +79,13 @@ const Auth = (() => {
             profile = null;
         }
 
-        onReady ? .(profile);
+        onReady ?.(profile);
     }
 
     function scheduleRefresh(expiresIn) {
         clearTimeout(refreshTimer);
         const ms = Math.max((Number(expiresIn) || 3000) - 180, 30) * 1000;
-        refreshTimer = setTimeout(() => tokenClient ? .requestAccessToken({ prompt: "" }), ms);
+        refreshTimer = setTimeout(() => tokenClient ?.requestAccessToken({ prompt: "" }), ms);
     }
 
     function getProfile() { return profile; }
@@ -95,7 +95,7 @@ const Auth = (() => {
     function signOut() {
         clearTimeout(refreshTimer);
         localStorage.removeItem(LOCAL_FLAG);
-        if (currentToken && window.google ? .accounts ? .oauth2 ? .revoke) {
+        if (currentToken && window.google ?.accounts ?.oauth2 ?.revoke) {
             google.accounts.oauth2.revoke(currentToken, () => location.reload());
         } else {
             location.reload();

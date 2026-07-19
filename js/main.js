@@ -39,13 +39,13 @@ function bindNav() {
 }
 
 function applyProfileToUi(profile) {
-    const nameShort = profile ? .given_name || profile ? .name || "Cuenta";
+    const nameShort = profile ?.given_name || profile ?.name || "Cuenta";
     document.getElementById("profile-name").textContent = nameShort;
-    document.getElementById("menu-name").textContent = profile ? .name || "Cuenta de Google";
-    document.getElementById("menu-email").textContent = profile ? .email || "";
+    document.getElementById("menu-name").textContent = profile ?.name || "Cuenta de Google";
+    document.getElementById("menu-email").textContent = profile ?.email || "";
 
     const avatarSlot = document.getElementById("profile-avatar-slot");
-    if (profile ? .picture) {
+    if (profile ?.picture) {
         avatarSlot.innerHTML = `<img class="profile-avatar" src="${profile.picture}" alt="">`;
     } else {
         const initial = (nameShort || "?").trim().charAt(0).toUpperCase();
@@ -123,12 +123,12 @@ document.addEventListener("DOMContentLoaded", () => {
     setView("dashboard");
 
     const startAuth = () => Auth.init(onGoogleReady);
-    if (window.google ? .accounts ? .oauth2) {
+    if (window.google ?.accounts ?.oauth2) {
         startAuth();
     } else {
         // La librería de Google puede tardar un instante en cargar (script async).
         const t = setInterval(() => {
-            if (window.google ? .accounts ? .oauth2) {
+            if (window.google ?.accounts ?.oauth2) {
                 clearInterval(t);
                 startAuth();
             }

@@ -53,7 +53,7 @@ function fmtDateHuman(iso) {
 }
 
 function escapeHtml(str) {
-    return String(str ? ? "").replace(/[&<>"']/g, (c) => ({
+    return String(str ?? "").replace(/[&<>"']/g, (c) => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",

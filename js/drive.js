@@ -31,7 +31,7 @@ const Drive = (() => {
         const res = await fetch(url, { headers: authHeaders() });
         if (!res.ok) throw new Error("No se pudo consultar Google Drive.");
         const data = await res.json();
-        return data.files ? .[0] || null;
+        return data.files ?.[0] || null;
     }
 
     async function createFile(initialData) {

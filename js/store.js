@@ -40,12 +40,12 @@ const Store = (() => {
 
         loadFromRemote(data) {
             state = {
-                anio: data ? .anio || CONFIG.ANIO_ACTIVO,
-                clientes: data ? .clientes || [],
-                ingresos: data ? .ingresos || [],
-                gastosPersonales: (data ? .gastosPersonales || []).map((g) => ({ categoria: "Sin categoría", ...g })),
-                gastosCorporativos: data ? .gastosCorporativos || [],
-                ahorros: (data ? .ahorros || []).map((a) => ({ aportes: [], ...a })),
+                anio: data ?.anio || CONFIG.ANIO_ACTIVO,
+                clientes: data ?.clientes || [],
+                ingresos: data ?.ingresos || [],
+                gastosPersonales: (data ?.gastosPersonales || []).map((g) => ({ categoria: "Sin categoría", ...g })),
+                gastosCorporativos: data ?.gastosCorporativos || [],
+                ahorros: (data ?.ahorros || []).map((a) => ({ aportes: [], ...a })),
             };
             dirty = false;
             notify();
@@ -79,7 +79,7 @@ const Store = (() => {
         },
 
         clienteNombre(id) {
-            return state.clientes.find((c) => c.id === id) ? .nombre || "Cliente eliminado";
+            return state.clientes.find((c) => c.id === id) ?.nombre || "Cliente eliminado";
         },
 
         // ---------- Ingresos ----------

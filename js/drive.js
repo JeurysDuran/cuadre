@@ -4,6 +4,8 @@
    Esa carpeta es privada por app: ni siquiera aparece en el Drive normal
    del usuario, y ninguna otra app (ni tú desde el navegador) puede leerla.
    No hace falta backend ni base de datos: todo corre en el navegador.
+   Si no has conectado tu cuenta todavía, la app sigue funcionando y
+   guardando en memoria; en cuanto conectes tu cuenta, se sincroniza.
    ========================================================================== */
 
 const Drive = (() => {
@@ -12,7 +14,6 @@ const Drive = (() => {
 
     let accessToken = null;
     let fileId = null;
-    let saveTimer = null;
     let saving = false;
     let pendingSave = null;
 
@@ -30,7 +31,7 @@ const Drive = (() => {
         const res = await fetch(url, { headers: authHeaders() });
         if (!res.ok) throw new Error("No se pudo consultar Google Drive.");
         const data = await res.json();
-        return data.files?.[0] || null;
+        return data.files ? .[0] || null;
     }
 
     async function createFile(initialData) {
@@ -68,14 +69,14 @@ const Drive = (() => {
         return res.json();
     }
 
-    async function loadOrCreate() {
+    async function loadOrCreate(localSnapshot) {
         const existing = await findFile();
         if (existing) {
             fileId = existing.id;
             const data = await readFile(fileId);
             return data;
         }
-        const blank = { anio: CONFIG.ANIO_ACTIVO, clientes: [], ingresos: [], gastosPersonales: [], gastosCorporativos: [] };
+        const blank = localSnapshot || { anio: CONFIG.ANIO_ACTIVO, clientes: [], ingresos: [], gastosPersonales: [], gastosCorporativos: [], ahorros: [] };
         fileId = await createFile(blank);
         return blank;
     }
@@ -85,10 +86,10 @@ const Drive = (() => {
         const label = document.getElementById("sync-label");
         if (!pill || !label) return;
         pill.classList.remove("is-saving", "is-saved", "is-error");
-        if (status === "saving") { pill.classList.add("is-saving"); label.textContent = "Guardando en Drive…"; }
-        else if (status === "saved") { pill.classList.add("is-saved"); label.textContent = "Guardado en Google Drive"; }
-        else if (status === "error") { pill.classList.add("is-error"); label.textContent = "Error al guardar"; }
-        else { label.textContent = "Sincronizado"; }
+        if (status === "saving") { pill.classList.add("is-saving");
+            label.textContent = "Guardando en Drive…"; } else if (status === "saved") { pill.classList.add("is-saved");
+            label.textContent = "Guardado en Google Drive"; } else if (status === "error") { pill.classList.add("is-error");
+            label.textContent = "Error al guardar"; } else { label.textContent = "Guardado solo en este dispositivo"; }
     }
 
     async function saveNow(data) {
@@ -116,5 +117,9 @@ const Drive = (() => {
 
     const scheduleSave = debounce((data) => saveNow(data), 1400);
 
-    return { setAccessToken, loadOrCreate, saveNow, scheduleSave, setSyncUi };
+    function isConnected() {
+        return !!accessToken;
+    }
+
+    return { setAccessToken, loadOrCreate, saveNow, scheduleSave, setSyncUi, isConnected };
 })();

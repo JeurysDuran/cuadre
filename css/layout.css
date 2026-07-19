@@ -30,12 +30,12 @@
     width: 30px;
     height: 30px;
     border-radius: 8px;
-    background: linear-gradient(155deg, var(--mint), var(--blue));
+    background: var(--blue);
     display: grid;
     place-items: center;
-    font-family: var(--font-mono);
+    font-family: var(--font-display);
     font-weight: 700;
-    color: #06110C;
+    color: #fff;
     font-size: 13px;
     flex-shrink: 0;
 }
@@ -43,14 +43,13 @@
 .brand-name {
     font-family: var(--font-display);
     font-size: 17px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .brand-year {
-    font-family: var(--font-mono);
     font-size: 10.5px;
     color: var(--text-faint);
-    letter-spacing: .04em;
+    letter-spacing: .02em;
 }
 
 .nav-main {
@@ -58,6 +57,7 @@
     flex-direction: column;
     gap: 2px;
     flex: 1;
+    overflow-y: auto;
 }
 
 .nav-link {
@@ -68,7 +68,7 @@
     border-radius: var(--radius-sm);
     color: var(--text-dim);
     font-size: 13.5px;
-    font-weight: 500;
+    font-weight: 600;
     border: none;
     background: none;
     cursor: pointer;
@@ -90,12 +90,16 @@
 }
 
 .nav-link.is-active {
-    background: var(--surface-2);
-    color: var(--text);
+    background: var(--blue-dim);
+    color: var(--blue);
+}
+
+.nav-link.is-active svg {
+    opacity: 1;
 }
 
 .nav-link.is-active .nav-dot {
-    background: var(--mint);
+    background: var(--blue);
 }
 
 .nav-dot {
@@ -114,7 +118,6 @@
 }
 
 .sidebar-foot {
-    font-family: var(--font-mono);
     font-size: 10.5px;
     color: var(--text-faint);
     padding: 8px;
@@ -124,7 +127,6 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text-faint);
     padding: 4px 0;
@@ -137,14 +139,29 @@
     background: var(--text-faint);
 }
 
-.sync-pill.is-saving .sync-dot { background: var(--amber); animation: pulse 1s ease-in-out infinite; }
-.sync-pill.is-saved .sync-dot { background: var(--mint); }
-.sync-pill.is-error .sync-dot { background: var(--coral); }
+.sync-pill.is-saving .sync-dot {
+    background: var(--amber);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.sync-pill.is-saved .sync-dot {
+    background: var(--mint);
+}
+
+.sync-pill.is-error .sync-dot {
+    background: var(--coral);
+}
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .35; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .35;
+    }
 }
+
 
 /* ---- Contenido principal ---- */
 
@@ -162,7 +179,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 18px 32px;
-    background: rgba(11, 14, 17, .82);
+    background: rgba(255, 255, 255, .92);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--line);
 }
@@ -183,9 +200,6 @@
     gap: 14px;
 }
 
-.mobile-menu-btn {
-    display: none;
-}
 
 /* Perfil */
 
@@ -200,9 +214,13 @@
     background: var(--surface-2);
     border: 1px solid var(--line);
     border-radius: 999px;
-    padding: 5px 12px 5px 5px;
+    padding: 5px 14px 5px 5px;
     cursor: pointer;
     color: var(--text);
+}
+
+.profile-btn:hover {
+    border-color: var(--text-faint);
 }
 
 .profile-avatar {
@@ -214,21 +232,26 @@
     display: block;
 }
 
-.profile-avatar-fallback {
+.profile-avatar-fallback,
+#profile-avatar-slot svg {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: linear-gradient(155deg, var(--mint), var(--blue));
+    background: var(--blue-dim);
+    color: var(--blue);
     display: grid;
     place-items: center;
     font-size: 12px;
     font-weight: 700;
-    color: #06110C;
 }
 
-.profile-btn span {
+#profile-avatar-slot svg {
+    padding: 6px;
+}
+
+.profile-btn span#profile-name {
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     max-width: 130px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -240,7 +263,7 @@
     right: 0;
     top: calc(100% + 8px);
     width: 240px;
-    background: var(--surface-2);
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
@@ -250,7 +273,9 @@
     gap: 2px;
 }
 
-.profile-menu.is-open { display: flex; }
+.profile-menu.is-open {
+    display: flex;
+}
 
 .profile-menu-head {
     padding: 10px 10px 12px;
@@ -260,7 +285,7 @@
 
 .profile-menu-head .name {
     font-size: 13.5px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .profile-menu-head .email {
@@ -281,18 +306,20 @@
     border: none;
     color: var(--text-dim);
     font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
     width: 100%;
     text-align: left;
 }
 
 .profile-menu-item:hover {
-    background: var(--surface-3);
+    background: var(--surface-2);
     color: var(--text);
 }
 
 .profile-menu-item.danger:hover {
     color: var(--coral);
+    background: var(--coral-dim);
 }
 
 .view-container {
@@ -310,9 +337,16 @@
 }
 
 @keyframes fadein {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
+
 
 /* ---- Bottom tab bar (móvil) ---- */
 
@@ -333,19 +367,26 @@
     .topbar {
         padding: 14px 16px;
     }
-    .profile-btn span { display: none; }
-    .profile-btn { padding: 5px; }
-
+    .profile-btn span#profile-name {
+        display: none;
+    }
+    .profile-btn {
+        padding: 5px;
+    }
     .tabbar {
         display: flex;
         position: fixed;
-        left: 0; right: 0; bottom: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         z-index: 30;
-        background: rgba(18, 22, 28, .92);
+        background: rgba(255, 255, 255, .96);
         backdrop-filter: blur(10px);
         border-top: 1px solid var(--line);
         padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-        justify-content: space-around;
+        overflow-x: auto;
+        justify-content: flex-start;
+        gap: 2px;
     }
     .tabbar-btn {
         display: flex;
@@ -356,9 +397,17 @@
         border: none;
         color: var(--text-faint);
         font-size: 10px;
-        padding: 6px 8px;
+        font-weight: 600;
+        padding: 6px 10px;
         cursor: pointer;
+        flex: 0 0 auto;
+        white-space: nowrap;
     }
-    .tabbar-btn svg { width: 19px; height: 19px; }
-    .tabbar-btn.is-active { color: var(--mint); }
+    .tabbar-btn svg {
+        width: 19px;
+        height: 19px;
+    }
+    .tabbar-btn.is-active {
+        color: var(--blue);
+    }
 }

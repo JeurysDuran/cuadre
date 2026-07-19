@@ -8,29 +8,41 @@ const Charts = (() => {
     const c = (name) => css.getPropertyValue(name).trim();
 
     const COLORS = {
-        mint: c("--mint") || "#35D28A",
-        coral: c("--coral") || "#FF6B5E",
-        amber: c("--amber") || "#F2B84B",
-        blue: c("--blue") || "#5B9BFF",
-        text: c("--text") || "#ECEEF0",
-        textDim: c("--text-dim") || "#9198A3",
-        line: c("--line") || "#262C34",
-        surface2: c("--surface-2") || "#181D24",
+        mint: c("--mint") || "#1E9E6B",
+        coral: c("--coral") || "#D9503B",
+        amber: c("--amber") || "#C98A1E",
+        blue: c("--blue") || "#2F6FED",
+        text: c("--text") || "#1B1F24",
+        textDim: c("--text-dim") || "#666E79",
+        line: c("--line") || "#E3E6EB",
+        surface: c("--surface") || "#FFFFFF",
     };
 
-    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.family = "'Open Sans', sans-serif";
     Chart.defaults.color = COLORS.textDim;
     Chart.defaults.borderColor = COLORS.line;
 
     const MES_ABR = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
     function destroy(id) {
-        if (instances[id]) { instances[id].destroy(); delete instances[id]; }
+        if (instances[id]) { instances[id].destroy();
+            delete instances[id]; }
     }
 
     function ctxOf(id) {
         const el = document.getElementById(id);
         return el ? el.getContext("2d") : null;
+    }
+
+    function tooltipBase() {
+        return {
+            backgroundColor: COLORS.text,
+            titleColor: COLORS.surface,
+            bodyColor: COLORS.surface,
+            padding: 10,
+            cornerRadius: 6,
+            displayColors: false,
+        };
     }
 
     function monthlyIncome(id, data) {
@@ -44,7 +56,7 @@ const Charts = (() => {
                 datasets: [{
                     label: "Ingresos",
                     data,
-                    backgroundColor: COLORS.mint + "cc",
+                    backgroundColor: COLORS.mint,
                     hoverBackgroundColor: COLORS.mint,
                     borderRadius: 5,
                     maxBarThickness: 30,
@@ -55,15 +67,7 @@ const Charts = (() => {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: {
-                        backgroundColor: COLORS.surface2,
-                        borderColor: COLORS.line,
-                        borderWidth: 1,
-                        titleColor: COLORS.text,
-                        bodyColor: COLORS.text,
-                        padding: 10,
-                        callbacks: { label: (i) => "RD$ " + fmtMoney(i.parsed.y) },
-                    },
+                    tooltip: {...tooltipBase(), callbacks: { label: (i) => "RD$ " + fmtMoney(i.parsed.y) } },
                 },
                 scales: {
                     x: { grid: { display: false } },
@@ -85,7 +89,7 @@ const Charts = (() => {
                     label: "Saldo acumulado",
                     data,
                     borderColor: COLORS.blue,
-                    backgroundColor: COLORS.blue + "22",
+                    backgroundColor: COLORS.blue + "1f",
                     fill: true,
                     tension: .35,
                     pointRadius: 3,
@@ -97,15 +101,7 @@ const Charts = (() => {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: {
-                        backgroundColor: COLORS.surface2,
-                        borderColor: COLORS.line,
-                        borderWidth: 1,
-                        titleColor: COLORS.text,
-                        bodyColor: COLORS.text,
-                        padding: 10,
-                        callbacks: { label: (i) => "RD$ " + fmtMoney(i.parsed.y) },
-                    },
+                    tooltip: {...tooltipBase(), callbacks: { label: (i) => "RD$ " + fmtMoney(i.parsed.y) } },
                 },
                 scales: {
                     x: { grid: { display: false } },
@@ -126,7 +122,7 @@ const Charts = (() => {
                 datasets: [{
                     data: [personal, corporativo],
                     backgroundColor: [COLORS.coral, COLORS.amber],
-                    borderColor: COLORS.surface2,
+                    borderColor: COLORS.surface,
                     borderWidth: 3,
                 }],
             },
@@ -136,15 +132,7 @@ const Charts = (() => {
                 cutout: "68%",
                 plugins: {
                     legend: { display: false },
-                    tooltip: {
-                        backgroundColor: COLORS.surface2,
-                        borderColor: COLORS.line,
-                        borderWidth: 1,
-                        titleColor: COLORS.text,
-                        bodyColor: COLORS.text,
-                        padding: 10,
-                        callbacks: { label: (i) => `${i.label}: RD$ ${fmtMoney(i.parsed)}` },
-                    },
+                    tooltip: {...tooltipBase(), callbacks: { label: (i) => `${i.label}: RD$ ${fmtMoney(i.parsed)}` } },
                 },
             },
         });
@@ -161,7 +149,7 @@ const Charts = (() => {
                 labels: top.map((r) => r.nombre),
                 datasets: [{
                     data: top.map((r) => r.total),
-                    backgroundColor: COLORS.blue + "cc",
+                    backgroundColor: COLORS.blue,
                     hoverBackgroundColor: COLORS.blue,
                     borderRadius: 5,
                     maxBarThickness: 22,
@@ -173,15 +161,7 @@ const Charts = (() => {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: {
-                        backgroundColor: COLORS.surface2,
-                        borderColor: COLORS.line,
-                        borderWidth: 1,
-                        titleColor: COLORS.text,
-                        bodyColor: COLORS.text,
-                        padding: 10,
-                        callbacks: { label: (i) => "RD$ " + fmtMoney(i.parsed.x) },
-                    },
+                    tooltip: {...tooltipBase(), callbacks: { label: (i) => "RD$ " + fmtMoney(i.parsed.x) } },
                 },
                 scales: {
                     x: { grid: { color: COLORS.line }, ticks: { callback: (v) => fmtMoneyShort(v) } },
@@ -191,5 +171,34 @@ const Charts = (() => {
         });
     }
 
-    return { monthlyIncome, balanceTrend, expensesBreakdown, topClients, destroy };
+    // Gastos personales agrupados por categoría, un color distinto por cada una.
+    function expensesByCategory(id, rows) {
+        destroy(id);
+        const ctx = ctxOf(id);
+        if (!ctx) return;
+        const top = rows.slice(0, 8);
+        instances[id] = new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: top.map((r) => r.categoria),
+                datasets: [{
+                    data: top.map((r) => r.total),
+                    backgroundColor: top.map((_, i) => colorAt(i)),
+                    borderColor: COLORS.surface,
+                    borderWidth: 3,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "62%",
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {...tooltipBase(), callbacks: { label: (i) => `${i.label}: RD$ ${fmtMoney(i.parsed)}` } },
+                },
+            },
+        });
+    }
+
+    return { monthlyIncome, balanceTrend, expensesBreakdown, topClients, expensesByCategory, destroy };
 })();

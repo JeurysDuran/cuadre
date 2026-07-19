@@ -1,17 +1,20 @@
 /* ==========================================================================
    VISTA — Gastos personales / Gastos corporativos
-   Misma estructura que en el Excel (Fecha, Detalles, Cantidad), generada
-   una sola vez para ambas hojas.
+   Los gastos personales llevan categoría (pasaje, pastillas, compras,
+   remesas, etc. — las que tú quieras crear); los corporativos mantienen
+   la estructura simple de Fecha, Detalle, Cantidad.
    ========================================================================== */
 
-function makeGastosView({ containerId, tone, titulo, subtitulo, addFn, updateFn, deleteFn, listKey }) {
+function makeGastosView({ containerId, tone, titulo, subtitulo, addFn, updateFn, deleteFn, listKey, withCategoria }) {
     return function render() {
-        const el = document.getElementById(containerId);
-        const state = Store.getState();
-        const rows = [...state[listKey]].sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
-        const total = rows.reduce((s, r) => s + r.monto, 0);
+            const el = document.getElementById(containerId);
+            const state = Store.getState();
+            const rows = [...state[listKey]].sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
+            const total = rows.reduce((s, r) => s + r.monto, 0);
+            const categorias = withCategoria ? Store.categoriasPersonalesUsadas() : [];
+            const porCategoria = withCategoria ? Store.gastosPersonalesPorCategoria() : [];
 
-        el.innerHTML = `
+            el.innerHTML = `
             <div class="kpi-card tone-${tone}" style="max-width:320px;margin-bottom:20px;">
                 <div class="kpi-label">Total ${titulo.toLowerCase()}</div>
                 <div class="kpi-value">${amountSpan(total, { forceSign: "negative" })}</div>
@@ -31,9 +34,19 @@ function makeGastosView({ containerId, tone, titulo, subtitulo, addFn, updateFn,
                             <input name="monto" type="number" min="0" step="0.01" placeholder="0.00" required>
                         </div>
                     </div>
-                    <div class="field">
-                        <label>Detalle</label>
-                        <input name="detalle" placeholder="¿En qué fue el gasto?" required>
+                    <div class="field-row">
+                        <div class="field">
+                            <label>Detalle</label>
+                            <input name="detalle" placeholder="¿En qué fue el gasto?" required>
+                        </div>
+                        ${withCategoria ? `
+                        <div class="field">
+                            <label>Categoría</label>
+                            <input name="categoria" list="lista-categorias-${containerId}" placeholder="Ej: pasaje, remesas, compras…" autocomplete="off">
+                            <datalist id="lista-categorias-${containerId}">
+                                ${categorias.map((c) => `<option value="${escapeHtml(c)}">`).join("")}
+                            </datalist>
+                        </div>` : ""}
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary">
@@ -44,15 +57,34 @@ function makeGastosView({ containerId, tone, titulo, subtitulo, addFn, updateFn,
                 </form>
             </div>
 
+            ${withCategoria ? `
+            <div class="panel chart-card">
+                <div class="panel-head"><div><h3>Por categoría</h3><p>En qué se te va el dinero</p></div></div>
+                ${porCategoria.length
+                    ? `<div class="cat-breakdown">
+                        <canvas id="chart-gastos-categoria" height="90"></canvas>
+                        <div class="cat-legend">
+                            ${porCategoria.slice(0, 8).map((c, i) => `
+                                <div class="cat-legend-row">
+                                    <span class="dot" style="background:${colorAt(i)}"></span>
+                                    <span class="cat-legend-name">${escapeHtml(c.categoria)}</span>
+                                    <span class="cat-legend-amt">${amountSpan(c.total, { forceSign: "negative" })}</span>
+                                </div>`).join("")}
+                        </div>
+                       </div>`
+                    : emptyState("Sin categorías todavía", "Agrega un gasto con categoría para verlo aquí.")}
+            </div>` : ""}
+
             <div class="panel">
                 <div class="panel-head"><div><h3>Historial</h3><p>${rows.length} movimientos registrados</p></div></div>
                 ${rows.length ? `<div class="table-wrap"><table class="ledger">
-                    <thead><tr><th>Fecha</th><th>Detalle</th><th class="num">Monto</th><th></th></tr></thead>
+                    <thead><tr><th>Fecha</th><th>Detalle</th>${withCategoria ? "<th>Categoría</th>" : ""}<th class="num">Monto</th><th></th></tr></thead>
                     <tbody>
                         ${rows.map((r) => `
                             <tr>
                                 <td>${fmtDateHuman(r.fecha)}</td>
                                 <td>${escapeHtml(r.detalle)}</td>
+                                ${withCategoria ? `<td><span class="tag-chip">${escapeHtml(r.categoria || "Sin categoría")}</span></td>` : ""}
                                 <td class="num">${amountSpan(r.monto, { forceSign: "negative" })}</td>
                                 <td>
                                     <div class="row-actions">
@@ -70,16 +102,20 @@ function makeGastosView({ containerId, tone, titulo, subtitulo, addFn, updateFn,
             </div>
         `;
 
+        if (withCategoria && porCategoria.length) {
+            Charts.expensesByCategory("chart-gastos-categoria", porCategoria);
+        }
+
         document.getElementById(`form-${containerId}`).addEventListener("submit", (e) => {
             e.preventDefault();
             const f = new FormData(e.target);
-            addFn({ fecha: f.get("fecha"), detalle: f.get("detalle"), monto: f.get("monto") });
+            addFn({ fecha: f.get("fecha"), detalle: f.get("detalle"), monto: f.get("monto"), categoria: f.get("categoria") });
             showToast("Gasto agregado", "success");
             render();
         });
 
         el.querySelectorAll("[data-edit]").forEach((btn) => {
-            btn.addEventListener("click", () => openEditGasto(btn.dataset.edit, listKey, updateFn, render));
+            btn.addEventListener("click", () => openEditGasto(btn.dataset.edit, listKey, updateFn, render, withCategoria));
         });
         el.querySelectorAll("[data-delete]").forEach((btn) => {
             btn.addEventListener("click", () => {
@@ -93,7 +129,7 @@ function makeGastosView({ containerId, tone, titulo, subtitulo, addFn, updateFn,
     };
 }
 
-function openEditGasto(id, listKey, updateFn, rerender) {
+function openEditGasto(id, listKey, updateFn, rerender, withCategoria) {
     const row = Store.getState()[listKey].find((g) => g.id === id);
     if (!row) return;
     openModal(`
@@ -105,6 +141,9 @@ function openEditGasto(id, listKey, updateFn, rerender) {
                 <div class="field"><label>Monto (RD$)</label><input name="monto" type="number" min="0" step="0.01" value="${row.monto}" required></div>
             </div>
             <div class="field"><label>Detalle</label><input name="detalle" value="${escapeHtml(row.detalle)}" required></div>
+            ${withCategoria ? `<div class="field"><label>Categoría</label><input name="categoria" value="${escapeHtml(row.categoria || "")}" list="lista-categorias-edit">
+                <datalist id="lista-categorias-edit">${Store.categoriasPersonalesUsadas().map((c) => `<option value="${escapeHtml(c)}">`).join("")}</datalist>
+            </div>` : ""}
             <div class="form-actions">
                 <button type="button" class="btn btn-outline" data-close-modal>Cancelar</button>
                 <button type="submit" class="btn btn-primary">Guardar cambios</button>
@@ -114,7 +153,7 @@ function openEditGasto(id, listKey, updateFn, rerender) {
     document.getElementById("form-edit-gasto").addEventListener("submit", (e) => {
         e.preventDefault();
         const f = new FormData(e.target);
-        updateFn(id, { fecha: f.get("fecha"), detalle: f.get("detalle"), monto: f.get("monto") });
+        updateFn(id, { fecha: f.get("fecha"), detalle: f.get("detalle"), monto: f.get("monto"), categoria: f.get("categoria") });
         closeModal();
         showToast("Gasto actualizado", "success");
         rerender();
@@ -125,11 +164,12 @@ const renderGastosPersonales = makeGastosView({
     containerId: "view-gastos-personales",
     tone: "coral",
     titulo: "Gastos personales",
-    subtitulo: "Retiros y gastos de tu cuenta personal",
+    subtitulo: "Retiros y gastos de tu cuenta personal, por categoría",
     addFn: (d) => Store.addGastoPersonal(d),
     updateFn: (id, d) => Store.updateGastoPersonal(id, d),
     deleteFn: (id) => Store.deleteGastoPersonal(id),
     listKey: "gastosPersonales",
+    withCategoria: true,
 });
 
 const renderGastosCorporativos = makeGastosView({
@@ -141,4 +181,5 @@ const renderGastosCorporativos = makeGastosView({
     updateFn: (id, d) => Store.updateGastoCorporativo(id, d),
     deleteFn: (id) => Store.deleteGastoCorporativo(id),
     listKey: "gastosCorporativos",
+    withCategoria: false,
 });

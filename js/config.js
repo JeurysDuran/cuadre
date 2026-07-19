@@ -17,6 +17,6 @@ const CONFIG = {
     // Nombre del archivo donde se guardan tus datos dentro de esa carpeta.
     DRIVE_FILE_NAME: "cuadre-datos.json",
 
-    // Año fiscal que muestra la app (puedes cambiarlo cada enero).
+    // Año que se muestra en la marca de la app (solo decorativo).
     ANIO_ACTIVO: 2026,
 };

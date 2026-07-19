@@ -7,6 +7,14 @@ const MESES = [
     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ];
 
+// Paleta para gráficas de categorías (gastos personales, metas de ahorro).
+// Se recorre en orden y se repite si hay más elementos que colores.
+const PALETTE = ["#2F6FED", "#E0563E", "#1E9E6B", "#C98A1E", "#8154D1", "#0E9AA7", "#D64584", "#5B7083"];
+
+function colorAt(index) {
+    return PALETTE[index % PALETTE.length];
+}
+
 function uid() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
@@ -45,8 +53,12 @@ function fmtDateHuman(iso) {
 }
 
 function escapeHtml(str) {
-    return String(str ?? "").replace(/[&<>"']/g, (c) => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    return String(str ? ? "").replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
     }[c]));
 }
 
@@ -56,6 +68,11 @@ function debounce(fn, wait) {
         clearTimeout(t);
         t = setTimeout(() => fn(...args), wait);
     };
+}
+
+function pct(part, total) {
+    if (!total || total <= 0) return 0;
+    return Math.max(0, Math.min(100, Math.round((part / total) * 100)));
 }
 
 function showToast(message, type = "default") {

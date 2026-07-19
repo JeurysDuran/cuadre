@@ -79,7 +79,7 @@ function renderIngresos() {
                 ${renderTotalesMes()}
             </div>
             <div class="panel">
-                <div class="panel-head"><div><h3>Total anual por cliente</h3><p>Acumulado del año completo</p></div></div>
+                <div class="panel-head"><div><h3>Total por cliente</h3><p>Acumulado de todo lo registrado</p></div></div>
                 ${renderTotalesCliente()}
             </div>
         </div>
@@ -168,7 +168,7 @@ function renderTotalesCliente() {
     const rows = Store.ingresosPorCliente();
     if (!rows.length) return `<div class="empty-state"><div class="glyph">·−·</div><p>Sin clientes registrados aún.</p></div>`;
     return `<div class="table-wrap"><table class="ledger">
-        <thead><tr><th>Cliente</th><th class="num">Total anual</th></tr></thead>
+        <thead><tr><th>Cliente</th><th class="num">Total</th></tr></thead>
         <tbody>
             ${rows.map((r) => `<tr><td>${escapeHtml(r.nombre)}</td><td class="num">${amountSpan(r.total, { forceSign: "positive" })}</td></tr>`).join("")}
         </tbody>

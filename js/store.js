@@ -1,20 +1,22 @@
 /* ==========================================================================
    STORE — modelo de datos en memoria + cálculos derivados.
-   Refleja las hojas del Excel original:
-     - clientes + ingresos (Descripción de Ingresos mensual)
-     - gastosPersonales (Gastos Personales)
-     - gastosCorporativos (Gastos Corporativos)
-   Los totales mensuales, anuales y el saldo se calculan siempre al vuelo,
-   igual que las fórmulas del Excel, para que nunca se puedan "romper".
+     - clientes + ingresos
+     - gastosPersonales (con categoría)
+     - gastosCorporativos
+     - ahorros (metas de ahorro con aportes)
+   Los totales se calculan siempre al vuelo para que nunca se puedan "romper".
+   El "saldo total" es acumulado de todo lo registrado, no se limita a un
+   año calendario (no hay filtro de año en los movimientos).
    ========================================================================== */
 
 const Store = (() => {
     let state = {
         anio: CONFIG.ANIO_ACTIVO,
-        clientes: [],           // { id, nombre }
-        ingresos: [],           // { id, clienteId, mes(1-12), dia, monto }
-        gastosPersonales: [],   // { id, fecha, detalle, monto }
+        clientes: [], // { id, nombre }
+        ingresos: [], // { id, clienteId, mes(1-12), dia, monto }
+        gastosPersonales: [], // { id, fecha, detalle, monto, categoria }
         gastosCorporativos: [], // { id, fecha, detalle, monto }
+        ahorros: [], // { id, nombre, meta, aportes:[{id,fecha,monto}] }
     };
 
     const listeners = new Set();
@@ -38,11 +40,12 @@ const Store = (() => {
 
         loadFromRemote(data) {
             state = {
-                anio: data?.anio || CONFIG.ANIO_ACTIVO,
-                clientes: data?.clientes || [],
-                ingresos: data?.ingresos || [],
-                gastosPersonales: data?.gastosPersonales || [],
-                gastosCorporativos: data?.gastosCorporativos || [],
+                anio: data ? .anio || CONFIG.ANIO_ACTIVO,
+                clientes: data ? .clientes || [],
+                ingresos: data ? .ingresos || [],
+                gastosPersonales: (data ? .gastosPersonales || []).map((g) => ({ categoria: "Sin categoría", ...g })),
+                gastosCorporativos: data ? .gastosCorporativos || [],
+                ahorros: (data ? .ahorros || []).map((a) => ({ aportes: [], ...a })),
             };
             dirty = false;
             notify();
@@ -76,7 +79,7 @@ const Store = (() => {
         },
 
         clienteNombre(id) {
-            return state.clientes.find((c) => c.id === id)?.nombre || "Cliente eliminado";
+            return state.clientes.find((c) => c.id === id) ? .nombre || "Cliente eliminado";
         },
 
         // ---------- Ingresos ----------
@@ -84,7 +87,11 @@ const Store = (() => {
             const clienteId = this.upsertCliente(clienteNombre);
             if (!clienteId) return;
             state.ingresos.push({
-                id: uid(), clienteId, mes: Number(mes), dia: Number(dia) || null, monto: Number(monto) || 0,
+                id: uid(),
+                clienteId,
+                mes: Number(mes),
+                dia: Number(dia) || null,
+                monto: Number(monto) || 0,
             });
             markDirty();
         },
@@ -105,19 +112,42 @@ const Store = (() => {
         },
 
         // ---------- Gastos personales ----------
-        addGastoPersonal({ fecha, detalle, monto }) {
-            state.gastosPersonales.push({ id: uid(), fecha: fecha || todayISO(), detalle: detalle.trim(), monto: Number(monto) || 0 });
+        addGastoPersonal({ fecha, detalle, monto, categoria }) {
+            state.gastosPersonales.push({
+                id: uid(),
+                fecha: fecha || todayISO(),
+                detalle: detalle.trim(),
+                monto: Number(monto) || 0,
+                categoria: (categoria || "Sin categoría").trim() || "Sin categoría",
+            });
             markDirty();
         },
         updateGastoPersonal(id, patch) {
             const row = state.gastosPersonales.find((g) => g.id === id);
             if (!row) return;
-            Object.assign(row, patch, { monto: patch.monto !== undefined ? Number(patch.monto) || 0 : row.monto });
+            Object.assign(row, patch, {
+                monto: patch.monto !== undefined ? Number(patch.monto) || 0 : row.monto,
+                categoria: patch.categoria !== undefined ? ((patch.categoria || "Sin categoría").trim() || "Sin categoría") : row.categoria,
+            });
             markDirty();
         },
         deleteGastoPersonal(id) {
             state.gastosPersonales = state.gastosPersonales.filter((g) => g.id !== id);
             markDirty();
+        },
+        categoriasPersonalesUsadas() {
+            const set = new Set(state.gastosPersonales.map((g) => g.categoria || "Sin categoría"));
+            return [...set].sort((a, b) => a.localeCompare(b));
+        },
+        gastosPersonalesPorCategoria() {
+            const map = new Map();
+            state.gastosPersonales.forEach((g) => {
+                const cat = g.categoria || "Sin categoría";
+                map.set(cat, (map.get(cat) || 0) + g.monto);
+            });
+            return [...map.entries()]
+                .map(([categoria, total]) => ({ categoria, total }))
+                .sort((a, b) => b.total - a.total);
         },
 
         // ---------- Gastos corporativos ----------
@@ -136,7 +166,46 @@ const Store = (() => {
             markDirty();
         },
 
-        // ---------- Cálculos derivados (equivalentes a las fórmulas del Excel) ----------
+        // ---------- Ahorros (metas) ----------
+        addMetaAhorro({ nombre, meta }) {
+            const clean = (nombre || "").trim();
+            if (!clean) return null;
+            const m = { id: uid(), nombre: clean, meta: Number(meta) || 0, aportes: [] };
+            state.ahorros.push(m);
+            markDirty();
+            return m.id;
+        },
+        updateMetaAhorro(id, patch) {
+            const m = state.ahorros.find((a) => a.id === id);
+            if (!m) return;
+            if (patch.nombre !== undefined) m.nombre = patch.nombre.trim();
+            if (patch.meta !== undefined) m.meta = Number(patch.meta) || 0;
+            markDirty();
+        },
+        deleteMetaAhorro(id) {
+            state.ahorros = state.ahorros.filter((a) => a.id !== id);
+            markDirty();
+        },
+        addAporteAhorro(metaId, { monto, fecha }) {
+            const m = state.ahorros.find((a) => a.id === metaId);
+            if (!m) return;
+            m.aportes.push({ id: uid(), fecha: fecha || todayISO(), monto: Number(monto) || 0 });
+            markDirty();
+        },
+        deleteAporteAhorro(metaId, aporteId) {
+            const m = state.ahorros.find((a) => a.id === metaId);
+            if (!m) return;
+            m.aportes = m.aportes.filter((ap) => ap.id !== aporteId);
+            markDirty();
+        },
+        ahorradoDe(meta) {
+            return (meta.aportes || []).reduce((s, a) => s + a.monto, 0);
+        },
+        totalAhorrado() {
+            return state.ahorros.reduce((s, m) => s + this.ahorradoDe(m), 0);
+        },
+
+        // ---------- Cálculos derivados ----------
         ingresosPorMes() {
             const arr = Array(12).fill(0);
             state.ingresos.forEach((i) => { if (i.mes >= 1 && i.mes <= 12) arr[i.mes - 1] += i.monto; });
@@ -165,8 +234,19 @@ const Store = (() => {
             return state.gastosCorporativos.reduce((s, g) => s + g.monto, 0);
         },
 
-        saldoNeto() {
+        // Saldo total: todo lo que ha entrado menos todo lo que ha salido.
+        // No resta los ahorros: lo apartado sigue siendo tuyo, solo está
+        // separado con un propósito.
+        saldoTotal() {
             return this.totalIngresos() - this.totalGastosPersonales() - this.totalGastosCorporativos();
+        },
+        // Alias por compatibilidad con vistas antiguas.
+        saldoNeto() {
+            return this.saldoTotal();
+        },
+        // Saldo disponible si además apartas lo que ya está en tus metas de ahorro.
+        saldoConAhorros() {
+            return this.saldoTotal() - this.totalAhorrado();
         },
 
         gastosPersonalesPorMes() {
